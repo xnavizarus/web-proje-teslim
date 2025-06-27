@@ -228,6 +228,7 @@ app.post("/girisyap", async (req, res) => {
 });
 
 // Sunucuyu başlat
-app.listen(port, () => {
-  console.log(`Sunucu ${port} portunda çalışıyor`);
+const PORT = process.env.port || 3000;
+app.listen(PORT, () => {
+  console.log(`Sunucu ${PORT} portunda çalışıyor`);
 });
