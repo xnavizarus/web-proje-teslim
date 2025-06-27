@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giriş Yap</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Giriş Yap</h1>
+      <form id="loginForm">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="E-posta"
+          required
+        />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Şifre"
+          required
+        />
+        <button type="submit">Giriş Yap</button>
+      </form>
+      <div id="loginMessage"></div>
+    </div>
+
+    <script>
+      const form = document.getElementById("loginForm");
+      const messageDiv = document.getElementById("loginMessage");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = form.email.value;
+        const password = form.password.value;
+
+        try {
+          const response = await fetch("http://localhost:3000/girisyap", {
+            // endpoint ismi küçük harf ile
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            messageDiv.textContent = data.message || "Giriş başarılı!";
+            messageDiv.style.color = "green";
+            form.reset();
+            // Giriş sonrası yönlendirme yapılabilir
+          } else {
+            messageDiv.textContent = data.message || "Giriş başarısız!";
+            messageDiv.style.color = "red";
+          }
+        } catch (error) {
+          messageDiv.textContent = "Sunucuya bağlanırken hata oluştu.";
+          messageDiv.style.color = "red";
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+👉 Sana projenin sorunsuz çalışması için adım adım güncel kurulum ve çalışma
+listesini şimdi tertemiz yazayım. 👉 Sen bunu VSCode içine notlar.md ya da
+readme-proje-calistirma.md gibi bir dosyaya kaydedebilirsin. 👉 Böylece her
+seferinde buradan aramak zorunda kalmazsın, proje klasöründe durur. 👉 İstersen
+her günün sonunda da güncel haliyle sana buradan gönderirim. 📌 İşte Şu An
+Güncel ve Temiz Backend Proje Çalıştırma Adımları 📂 Proje Başlatma ve Kurulum
+Adımları 1️⃣ Proje klasörüne terminal ile gir: cd
+C:\Users\Dell\Desktop\web-proje-teslim\backend 2️⃣ Gerekli bağımlılıkları yükle
+(eğer node_modules yoksa): npm install 3️⃣ .env dosyanı kontrol et. İçinde şu
+satır olacak:
+MONGO_URL=mongodb+srv://atabekyigit430:123456yigit@sipariscluster.yyer97a.mongodb.net/?retryWrites=true&w=majority&appName=SiparisCluster
+4️⃣ .gitignore dosyan varsa şu satırları ekle: .env node_modules/ Yoksa oluştur:
+Windows CMD: echo .env> .gitignore echo node_modules/>> .gitignore 🚀 Projeyi
+Çalıştırma 5️⃣ Projeyi başlat: node Server.js Konsolda şu yazıyı görmelisin:
+Sunucu 3000 portunda çalışıyor MongoDB Atlas bağlantısı başarılı 🔍 Bağlantı
+Testi 7️⃣ Tarayıcıya gir: http://localhost:3000/test-db ✅ Eğer MongoDB
+bağlantısı çalışıyor! yazıyorsa her şey tamam. Postman ile şu endpointleri
+sırayla test et: Tüm siparişleri listele: GET http://localhost:3000/api/orders
+Yeni sipariş ekle: POST http://localhost:3000/api/orders Body (JSON): { "urun":
+"Test Ürün", "adet": 2, "fiyat": 150 } Sipariş sil, güncelle, id ile getir gibi
+endpointleri de aynı şekilde test et. Geliştirme ve Ek Özellikler → names
+collection, kullanıcı girişi, JWT vb. özellikleri yarın bu temel üstüne
+kuracağız. 📌 Tavsiyem Bunu proje klasörünün içine proje-baslatma-notlari.md
+olarak kaydet. Her seferinde uğraşma, terminali aç, notları takip et. Dilersen
+yarın akşam günün sonunda yine buraya güncellenmiş halini yollarım.

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hakkımızda</title>
+    <link rel="stylesheet" href="hakkimizda.css" />
+  </head>
+  <body>
+    <!-- Hamburger Menü -->
+    <div id="hamburger">&#9776;</div>
+
+    <!-- Menü -->
+    <nav class="menu">
+      <ul>
+        <li><a href="index.html">Ana Sayfa</a></li>
+        <li><a href="login.html">Giriş Yap</a></li>
+        <li><a href="register.html">Kayıt Ol</a></li>
+        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+        <li><a href="iletisim.html">İletişim</a></li>
+      </ul>
+    </nav>
+
+    <!-- Sayfa Başlığı -->
+    <header>
+      <h1>Hakkımızda</h1>
+    </header>
+
+    <!-- Sayfa İçeriği -->
+    <main>
+      <section>
+        <h2>Biz Kimiz?</h2>
+        <p>
+          Web Projesi Teslim Platformu olarak, modern ve işlevsel web projeleri
+          geliştirerek, markaların dijital dünyadaki görünürlüğünü ve başarısını
+          artırmayı hedefliyoruz. Alanında uzman ekibimizle, kullanıcı deneyimi
+          odaklı ve yenilikçi çözümler sunuyoruz.
+        </p>
+      </section>
+
+      <section>
+        <h2>Misyonumuz</h2>
+        <p>
+          Müşteri memnuniyetini ön planda tutarak, her projede kaliteli,
+          güvenilir ve etkili dijital çözümler üretmek. Teknolojiyi yakından
+          takip ederek, işletmelere değer katan projeler hayata geçirmek.
+        </p>
+      </section>
+
+      <section>
+        <h2>Vizyonumuz</h2>
+        <p>
+          Türkiye’nin ve dünyanın saygın dijital platformları arasında yer
+          almak; sürekli gelişen ve değişen teknoloji dünyasında fark yaratan
+          projelerle sektörde öncü olmak.
+        </p>
+      </section>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+      const hamburger = document.getElementById("hamburger");
+      const menu = document.querySelector(".menu");
+
+      hamburger.addEventListener("click", () => {
+        menu.classList.toggle("active");
+      });
+    </script>
+
+    <!-- Footer -->
+    <footer>
+      <p>2025 Web Projesi Teslim Platformu | Tüm Hakları Saklıdır.</p>
+    </footer>
+  </body>
+</html>
