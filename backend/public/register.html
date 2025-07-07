@@ -7,10 +7,23 @@
     <link rel="stylesheet" href="register.css" />
   </head>
   <body>
+    <!-- NAVBAR -->
+    <nav>
+      <div id="hamburger">&#9776;</div>
+      <ul>
+        <li><a href="index.html">Ana Sayfa</a></li>
+        <li><a href="login.html">Giriş Yap</a></li>
+        <li><a href="register.html" class="active">Kayıt Ol</a></li>
+        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+        <li><a href="iletisim.html">İletişim</a></li>
+      </ul>
+    </nav>
+
     <header>
       <h1>Site Kayıt Alanı</h1>
       <p>Sitemize Kayıt Olmak İçin Gerekli Adımları İzleyiniz.</p>
     </header>
+
     <div class="register-container">
       <form id="registerForm">
         <input type="text" name="Ad" id="ad" placeholder="Ad" required /><br />
@@ -46,31 +59,41 @@
       <div id="message"></div>
     </div>
 
+    <footer>
+      <p>2025 Web Projesi Teslim Platformu | Tüm Hakları Saklıdır.</p>
+    </footer>
+
+    <!-- NAVBAR script -->
     <script>
-      // Formu ve mesaj göstereceğimiz divi seçiyoruz
+      const hamburger = document.getElementById("hamburger");
+      const menu = document.querySelector("nav ul");
+
+      hamburger.addEventListener("click", () => {
+        menu.classList.toggle("active");
+      });
+    </script>
+
+    <!-- Kayıt Formu JS -->
+    <script>
       const form = document.getElementById("registerForm");
       const messageDiv = document.getElementById("message");
 
-      // Form submit eventi async fonksiyon olarak tanımlanmalı
       form.addEventListener("submit", async function (event) {
-        event.preventDefault(); // Sayfanın yenilenmesini engelle
+        event.preventDefault();
 
-        // Input değerlerini al
         const ad = form.elements["Ad"].value.trim();
         const soyad = form.elements["Soyad"].value.trim();
         const email = form.elements["Email"].value.trim();
         const sifre = form.elements["Sifre"].value;
         const sifreTekrar = document.getElementById("sifreTekrar").value;
 
-        // Şifre eşleşme kontrolü
         if (sifre !== sifreTekrar) {
           messageDiv.textContent = "Şifreler uyuşmuyor, lütfen kontrol edin.";
           messageDiv.style.color = "red";
-          return; // Fonksiyondan çık
+          return;
         }
 
         try {
-          // Backend'e POST isteği gönder
           const response = await fetch("http://localhost:3000/kayitOl", {
             method: "POST",
             headers: {

@@ -2,11 +2,22 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Giriş Yap</title>
     <link rel="stylesheet" href="login.css" />
   </head>
   <body>
+    <nav class="menu">
+      <div id="hamburger">&#9776;</div>
+      <ul id="menu">
+        <li><a href="index.html">Ana Sayfa</a></li>
+        <li><a href="login.html">Giriş Yap</a></li>
+        <li><a href="register.html">Kayıt Ol</a></li>
+        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+        <li><a href="iletisim.html">İletişim</a></li>
+      </ul>
+    </nav>
+
     <div class="login-container">
       <h1>Giriş Yap</h1>
       <form id="loginForm">
@@ -30,6 +41,13 @@
     </div>
 
     <script>
+      const hamburger = document.getElementById("hamburger");
+      const menu = document.getElementById("menu");
+
+      hamburger.addEventListener("click", () => {
+        menu.classList.toggle("active");
+      });
+
       const form = document.getElementById("loginForm");
       const messageDiv = document.getElementById("loginMessage");
 
@@ -41,7 +59,6 @@
 
         try {
           const response = await fetch("http://localhost:3000/girisyap", {
-            // endpoint ismi küçük harf ile
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -53,7 +70,6 @@
             messageDiv.textContent = data.message || "Giriş başarılı!";
             messageDiv.style.color = "green";
             form.reset();
-            // Giriş sonrası yönlendirme yapılabilir
           } else {
             messageDiv.textContent = data.message || "Giriş başarısız!";
             messageDiv.style.color = "red";
