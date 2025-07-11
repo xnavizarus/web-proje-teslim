@@ -145,3 +145,14 @@ header p {
   font-size: 14px;
   color: #ecf0f1;
 }
+
+.menu ul {
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  /* Menü mobilde sağdan gizlenmiş durumda */
+}
+
+.menu ul.active {
+  transform: translateX(0);
+  /* Menü açıldığında görünür olur */
+}

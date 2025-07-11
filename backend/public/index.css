@@ -9,10 +9,11 @@ body {
 
 header {
   text-align: center;
-  padding: 50px 20px;
-  background-color: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  padding: 80px 20px;
+  background: url("https://source.unsplash.com/1600x400/?technology,web")
+    no-repeat center center/cover;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 header h1 {
@@ -75,6 +76,22 @@ header p {
   z-index: 200;
 }
 
+/* Buton Stili */
+.btn {
+  display: inline-block;
+  margin-top: 20px;
+  background: #1abc9c;
+  padding: 12px 25px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background: #16a085;
+}
+
 /* Footer */
 footer {
   text-align: center;
@@ -102,7 +119,7 @@ footer {
     transition: transform 0.3s ease-in-out;
   }
 
-  .menu ul.active {
+  .menu.active ul {
     transform: translateX(0);
   }
 

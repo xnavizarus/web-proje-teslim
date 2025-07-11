@@ -4,22 +4,22 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const path = require("path");
-const Name = require("./models/nameModel");
-const helmet = require("helmet"); // Güvenlik için
-const rateLimit = require("express-rate-limit"); // İstek limitleme
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const app = express();
-const port = 3000;
+
+// PORT değişkeni env veya 3000
+const PORT = process.env.PORT || 3000;
 
 // Middleware'ler
 app.use(cors());
-app.use(helmet()); // Tüm HTTP istekleri için güvenlik header'larını uygular
+app.use(helmet());
 
-// Rate Limiting middleware — 15 dakikada max 100 istek
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 100, // Max 100 istek
+  max: 100,
   message: "Çok fazla istek yaptınız, lütfen daha sonra tekrar deneyin.",
 });
 app.use(limiter);
@@ -27,10 +27,10 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Statik dosyaları sunmak için public klasörünü belirtiyoruz
+// Statik dosya servisi
 app.use(express.static(path.join(__dirname, "public")));
 
-// Log middleware
+// Log middleware (her isteği loglar)
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -47,13 +47,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB Atlas bağlantısı
+// MongoDB bağlantısı (env'den alıyor)
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB Atlas bağlantısı başarılı"))
   .catch((err) => console.error("MongoDB bağlantı hatası:", err));
 
-// Test endpointi
+// Test endpointleri
 app.get("/api/test", (req, res) => {
   res.send("Backend çalışıyor. MongoDB bağlantısı aktif!");
 });
@@ -62,7 +65,6 @@ app.get("/", (req, res) => {
   res.send("Backend çalışıyor. MongoDB bağlantısı aktif!");
 });
 
-// Veritabanı bağlantısını test endpointi
 app.get("/test-db", async (req, res) => {
   try {
     const collections = await mongoose.connection.db
@@ -80,6 +82,8 @@ app.get("/test-db", async (req, res) => {
 });
 
 const { ObjectId } = require("mongodb");
+
+// Sipariş CRUD işlemleri
 
 // Sipariş ekleme
 app.post("/api/orders", async (req, res) => {
@@ -112,17 +116,14 @@ app.get("/api/orders", async (req, res) => {
 // ID ile sipariş detayı getirme
 app.get("/api/orders/:id", async (req, res) => {
   const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId)) {
+  if (!ObjectId.isValid(orderId))
     return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  }
   try {
     const ordersCollection = mongoose.connection.db.collection("orders");
     const order = await ordersCollection.findOne({
       _id: new ObjectId(orderId),
     });
-    if (!order) {
-      return res.status(404).send({ message: "Sipariş bulunamadı" });
-    }
+    if (!order) return res.status(404).send({ message: "Sipariş bulunamadı" });
     res.status(200).send(order);
   } catch (err) {
     console.error(err);
@@ -133,9 +134,8 @@ app.get("/api/orders/:id", async (req, res) => {
 // Sipariş güncelleme
 app.put("/api/orders/:id", async (req, res) => {
   const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId)) {
+  if (!ObjectId.isValid(orderId))
     return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  }
   try {
     const ordersCollection = mongoose.connection.db.collection("orders");
     const updatedData = req.body;
@@ -143,9 +143,8 @@ app.put("/api/orders/:id", async (req, res) => {
       { _id: new ObjectId(orderId) },
       { $set: updatedData }
     );
-    if (result.matchedCount === 0) {
+    if (result.matchedCount === 0)
       return res.status(404).send({ message: "Sipariş bulunamadı" });
-    }
     res.status(200).send({ message: "Sipariş başarıyla güncellendi" });
   } catch (err) {
     console.error(err);
@@ -156,17 +155,15 @@ app.put("/api/orders/:id", async (req, res) => {
 // Sipariş silme
 app.delete("/api/orders/:id", async (req, res) => {
   const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId)) {
+  if (!ObjectId.isValid(orderId))
     return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  }
   try {
     const ordersCollection = mongoose.connection.db.collection("orders");
     const result = await ordersCollection.deleteOne({
       _id: new ObjectId(orderId),
     });
-    if (result.deletedCount === 0) {
+    if (result.deletedCount === 0)
       return res.status(404).send({ message: "Sipariş bulunamadı" });
-    }
     res.status(200).send({ message: "Sipariş başarıyla silindi" });
   } catch (err) {
     console.error(err);
@@ -208,18 +205,14 @@ app.post("/kayitOl", async (req, res) => {
 app.post("/girisyap", async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    if (!email || !password)
       return res.status(400).send({ message: "Email veya şifre gerekli" });
-    }
     const userCollection = mongoose.connection.db.collection("user");
     const mevcutKullanici = await userCollection.findOne({ Email: email });
-    if (!mevcutKullanici) {
+    if (!mevcutKullanici)
       return res.status(404).send({ message: "Kullanıcı bulunamadı" });
-    }
     const SifreDogruMu = await bcrypt.compare(password, mevcutKullanici.Sifre);
-    if (!SifreDogruMu) {
-      return res.status(401).send({ message: "Şifre hatalı" });
-    }
+    if (!SifreDogruMu) return res.status(401).send({ message: "Şifre hatalı" });
     res.status(200).send({ message: "Giriş başarılı" });
   } catch (err) {
     console.error(err);
@@ -227,8 +220,47 @@ app.post("/girisyap", async (req, res) => {
   }
 });
 
-// Sunucuyu başlat
-const PORT = process.env.port || 3000;
+// Yorum koleksiyonu tanımla
+const commentsCollection = () => mongoose.connection.db.collection("comments");
+
+// Yorumları listele (GET)
+app.get("/api/comments", async (req, res) => {
+  try {
+    const comments = await commentsCollection()
+      .find({})
+      .sort({ tarih: -1 })
+      .toArray();
+    res.status(200).json(comments);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Yorumlar alınırken hata oluştu" });
+  }
+});
+
+// Yeni yorum ekle (POST)
+app.post("/api/comments", async (req, res) => {
+  try {
+    const { metin } = req.body;
+    if (!metin || metin.trim() === "") {
+      return res.status(400).json({ message: "Yorum metni boş olamaz" });
+    }
+
+    const yeniYorum = {
+      metin,
+      tarih: new Date(),
+    };
+
+    const result = await commentsCollection().insertOne(yeniYorum);
+    res
+      .status(201)
+      .json({ message: "Yorum başarıyla eklendi", id: result.insertedId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Yorum eklenirken hata oluştu" });
+  }
+});
+
+// Server dinlemesi
 app.listen(PORT, () => {
   console.log(`Sunucu ${PORT} portunda çalışıyor`);
 });

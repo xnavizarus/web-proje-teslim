@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Yorumlar</title>
+    <link rel="stylesheet" href="publicyorumlar.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">ProjeSitesi</div>
+      <div class="menu-icon" onclick="toggleMenu()">☰</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Anasayfa</a></li>
+        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+        <li><a href="iletisim.html">İletişim</a></li>
+        <li><a href="yorumlar.html">Yorumlar</a></li>
+      </ul>
+    </nav>
+
+    <div class="container">
+      <h1>Yorumlar Sayfası</h1>
+
+      <div class="yorum-form">
+        <textarea
+          id="yorum"
+          placeholder="Yorumunuzu buraya yazın..."
+          rows="4"
+        ></textarea>
+        <button onclick="yorumEkle()">Yorumu Gönder</button>
+      </div>
+
+      <h2>Yapılan Yorumlar</h2>
+      <div id="yorumlar"></div>
+     
+    <script>
+      // Navbar mobil menü aç/kapa
+      function toggleMenu() {
+        const navLinks = document.getElementById("navLinks");
+        navLinks.classList.toggle("show");
+      }
+
+      // Yorum ekleme işlemi
+      function yorumEkle() {
+        const yorum = document.getElementById("yorum").value;
+        if (yorum.trim() === "") return alert("Yorum alanı boş bırakılamaz!");
+
+        fetch("/api/comments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ metin: yorum }),
+        })
+          .then(() => {
+            document.getElementById("yorum").value = ""; // kutuyu temizle
+            yorumlariGetir(); // yorumları yenile
+          })
+          .catch((err) => console.error("Yorum eklenirken hata:", err));
+      }
+
+      // Yorumları çekip ekranda gösterme
+      function yorumlariGetir() {
+        fetch("/api/comments")
+          .then((res) => res.json())
+          .then((data) => {
+            const yorumDiv = document.getElementById("yorumlar");
+            yorumDiv.innerHTML = ""; // önce temizle
+
+            data.forEach((item) => {
+              const yorumElement = document.createElement("div");
+              yorumElement.className = "yorum";
+              yorumElement.innerHTML = `
+                <p><strong>${new Date(item.tarih).toLocaleString()}</strong></p>
+                <p>${item.metin}</p>
+              `;
+              yorumDiv.appendChild(yorumElement);
+            });
+          })
+          .catch((err) => console.error("Yorumlar alınırken hata:", err));
+      }
+
+      // Sayfa açılır açılmaz yorumları getir
+      yorumlariGetir();
+
+      // Her 15 saniyede bir yorumları otomatik yenile
+      setInterval(yorumlariGetir, 15000);
+    </script>
+  </body>
+</html>

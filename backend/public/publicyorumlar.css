@@ -1,0 +1,166 @@
+/* Genel ayarlar */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.navbar .logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.navbar .menu-icon {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex: 1;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #fff;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.nav-links li a:hover {
+  color: #34e89e;
+}
+
+/* Mobil navbar */
+@media (max-width: 768px) {
+  .menu-icon {
+    display: block;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    right: -100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    width: 200px;
+    padding: 20px;
+    border-radius: 0 0 10px 10px;
+    transition: 0.3s;
+  }
+
+  .nav-links.show {
+    right: 0;
+  }
+
+  .nav-links li {
+    margin: 15px 0;
+  }
+}
+
+/* Container */
+.container {
+  padding: 30px;
+  max-width: 600px;
+  margin: 80px auto 30px auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+/* Başlıklar */
+.container h1,
+.container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Yorum formu */
+.yorum-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.yorum-form textarea {
+  resize: vertical;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #ffffff;
+  color: #333;
+  min-height: 100px;
+}
+
+.yorum-form button {
+  padding: 12px;
+  background: linear-gradient(135deg, #34e89e, #0f3443);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.yorum-form button:hover {
+  opacity: 0.85;
+}
+
+/* Yorumlar */
+#yorumlar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.yorum {
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 15px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer; /* tıklanabilir hissi için */
+}
+
+.yorum:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid #34e89e; /* hoverda çerçeve eklersen güzel olur */
+}
+
+.yorum p {
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.yorum p:first-child {
+  font-size: 14px;
+  color: #b3cde0;
+  font-style: italic;
+}
+#yorumlar {
+  max-height: 300px; /* Yorumlar kutusunun maksimum yüksekliği */
+  overflow-y: auto; /* Yorum çoksa scroll çıkar */
+  padding-right: 8px; /* Scroll için boşluk */
+  margin-top: 10px; /* Form ile yorumlar arasında biraz boşluk */
+}
