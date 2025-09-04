@@ -22,6 +22,11 @@
       <h1>Yorumlar Sayfası</h1>
 
       <div class="yorum-form">
+        <input
+          type="text"
+          id="commentAuthor"
+          placeholder="Adınızı buraya girin..."
+        />
         <textarea
           id="yorum"
           placeholder="Yorumunuzu buraya yazın..."
@@ -32,7 +37,8 @@
 
       <h2>Yapılan Yorumlar</h2>
       <div id="yorumlar"></div>
-     
+    </div>
+
     <script>
       // Navbar mobil menü aç/kapa
       function toggleMenu() {
@@ -42,24 +48,30 @@
 
       // Yorum ekleme işlemi
       function yorumEkle() {
+        const yazar = document.getElementById("commentAuthor").value; // Yazarın adını al
         const yorum = document.getElementById("yorum").value;
-        if (yorum.trim() === "") return alert("Yorum alanı boş bırakılamaz!");
 
-        fetch("/api/comments", {
+        if (yorum.trim() === "" || yazar.trim() === "")
+          return alert("Lütfen adınızı ve yorumunuzu girin!");
+
+        fetch("http://localhost:3000/api/comments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ metin: yorum }),
+          body: JSON.stringify({ metin: yorum, yazar: yazar }),
         })
           .then(() => {
             document.getElementById("yorum").value = ""; // kutuyu temizle
-            yorumlariGetir(); // yorumları yenile
+            document.getElementById("commentAuthor").value = ""; // yazar kutusunu temizle
+            alert(
+              "Yorumunuz başarıyla gönderildi. Onaylandıktan sonra yayınlanacaktır!"
+            );
           })
           .catch((err) => console.error("Yorum eklenirken hata:", err));
       }
 
-      // Yorumları çekip ekranda gösterme
+      // Yorumları çekip ekranda gösterme (Sadece onaylanmış yorumlar)
       function yorumlariGetir() {
-        fetch("/api/comments")
+        fetch("http://localhost:3000/api/comments?onaylandi=true") // Sadece onaylanmış yorumları çeker
           .then((res) => res.json())
           .then((data) => {
             const yorumDiv = document.getElementById("yorumlar");
@@ -69,9 +81,11 @@
               const yorumElement = document.createElement("div");
               yorumElement.className = "yorum";
               yorumElement.innerHTML = `
-                <p><strong>${new Date(item.tarih).toLocaleString()}</strong></p>
-                <p>${item.metin}</p>
-              `;
+                    <p><strong>${item.yazar || "Anonim"}</strong> - ${new Date(
+                item.tarih
+              ).toLocaleString()}</p>
+                    <p>${item.metin}</p>
+                  `;
               yorumDiv.appendChild(yorumElement);
             });
           })

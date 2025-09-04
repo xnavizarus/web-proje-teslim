@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
   padding: 0;
@@ -92,12 +95,14 @@ header h1 {
   font-size: 28px;
   margin-bottom: 10px;
   text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+  text-align: center;
 }
 
 header p {
   color: #f1f1f1;
   font-size: 14px;
   margin-bottom: 30px;
+  text-align: center;
 }
 
 .register-container input[type="text"],
@@ -105,7 +110,7 @@ header p {
 .register-container input[type="password"] {
   width: 100%;
   padding: 14px 16px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   border: none;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.15);

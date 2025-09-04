@@ -1,0 +1,71 @@
+/* Genel Ayarlar */
+body {
+  background-color: #1a1a2e; /* Koyu gece mavisi */
+  font-family: "Poppins", sans-serif;
+  color: #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+/* Giriş Konteyneri */
+#adminLoginForm {
+  background-color: #242547; /* Daha açık morumsu koyu ton */
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  width: 320px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+  font-size: 2em;
+  color: #e0e0e0;
+  margin-bottom: 25px;
+}
+
+/* Form Elemanları */
+#adminLoginForm label {
+  display: block;
+  text-align: left;
+  margin-bottom: 8px;
+  color: #b0b0b0;
+}
+
+#adminLoginForm input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+#adminLoginForm input:focus {
+  border-color: #6a1b9a; /* Odaklandığında mor vurgu */
+  outline: none;
+}
+
+#adminLoginForm button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6a1b9a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+#adminLoginForm button:hover {
+  background-color: #4a148c;
+}

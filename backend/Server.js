@@ -6,34 +6,30 @@ const cors = require("cors");
 const path = require("path");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
-
-// PORT değişkeni env veya 3000
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// Middleware'ler
+// Middleware
 app.use(cors());
 app.use(helmet());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 dakika
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: "Çok fazla istek yaptınız, lütfen daha sonra tekrar deneyin.",
 });
 app.use(limiter);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Statik dosya servisi
-app.use(express.static(path.join(__dirname, "public")));
-
-// Log middleware (her isteği loglar)
+// Log middleware
 app.use((req, res, next) => {
   const start = Date.now();
-
   res.on("finish", () => {
     const duration = Date.now() - start;
     const logMessage = `${new Date().toLocaleString()} | IP: ${req.ip} | ${
@@ -43,11 +39,10 @@ app.use((req, res, next) => {
       if (err) console.error("Log dosyasına yazılamadı:", err);
     });
   });
-
   next();
 });
 
-// MongoDB bağlantısı (env'den alıyor)
+// MongoDB bağlantısı
 mongoose
   .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
@@ -56,174 +51,104 @@ mongoose
   .then(() => console.log("MongoDB Atlas bağlantısı başarılı"))
   .catch((err) => console.error("MongoDB bağlantı hatası:", err));
 
-// Test endpointleri
-app.get("/api/test", (req, res) => {
-  res.send("Backend çalışıyor. MongoDB bağlantısı aktif!");
-});
-
-app.get("/", (req, res) => {
-  res.send("Backend çalışıyor. MongoDB bağlantısı aktif!");
-});
-
-app.get("/test-db", async (req, res) => {
-  try {
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    res
-      .status(200)
-      .json({ message: "MongoDB bağlantısı çalışıyor!", collections });
-  } catch (err) {
-    res.status(500).json({
-      message: "MongoDB bağlantı testi başarısız!",
-      error: err.message,
-    });
-  }
-});
-
+// MODELS
+const User = require("./models/userModel"); // ✅ DÜZELTİLDİ
 const { ObjectId } = require("mongodb");
 
-// Sipariş CRUD işlemleri
-
-// Sipariş ekleme
-app.post("/api/orders", async (req, res) => {
-  try {
-    const ordersCollection = mongoose.connection.db.collection("orders");
-    const newOrder = req.body;
-    const result = await ordersCollection.insertOne(newOrder);
-    res.status(201).send({
-      message: "Sipariş başarıyla eklendi",
-      orderId: result.insertedId,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Sipariş eklenirken hata oluştu" });
-  }
+// Yeni: Ayarlar için Mongoose Şeması
+const settingsSchema = new mongoose.Schema({
+  siteName: {
+    type: String,
+    default: "Admin Paneli",
+  },
+  contactEmail: {
+    type: String,
+    default: "admin@example.com",
+  },
 });
+const Settings = mongoose.model("Settings", settingsSchema);
 
-// Sipariş listeleme
-app.get("/api/orders", async (req, res) => {
-  try {
-    const ordersCollection = mongoose.connection.db.collection("orders");
-    const orders = await ordersCollection.find({}).toArray();
-    res.status(200).send(orders);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Siparişler listelenirken hata oluştu" });
-  }
-});
+// JWT admin kontrolü
+function isAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader)
+    return res.status(401).json({ message: "Authorization header yok" });
 
-// ID ile sipariş detayı getirme
-app.get("/api/orders/:id", async (req, res) => {
-  const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId))
-    return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  try {
-    const ordersCollection = mongoose.connection.db.collection("orders");
-    const order = await ordersCollection.findOne({
-      _id: new ObjectId(orderId),
-    });
-    if (!order) return res.status(404).send({ message: "Sipariş bulunamadı" });
-    res.status(200).send(order);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Sipariş getirilirken hata oluştu" });
-  }
-});
+  const token = authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Token bulunamadı" });
 
-// Sipariş güncelleme
-app.put("/api/orders/:id", async (req, res) => {
-  const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId))
-    return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  try {
-    const ordersCollection = mongoose.connection.db.collection("orders");
-    const updatedData = req.body;
-    const result = await ordersCollection.updateOne(
-      { _id: new ObjectId(orderId) },
-      { $set: updatedData }
-    );
-    if (result.matchedCount === 0)
-      return res.status(404).send({ message: "Sipariş bulunamadı" });
-    res.status(200).send({ message: "Sipariş başarıyla güncellendi" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Sipariş güncellenirken hata oluştu" });
-  }
-});
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: "Token geçersiz" });
+    if (user.role !== "admin")
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    req.user = user;
+    next();
+  });
+}
 
-// Sipariş silme
-app.delete("/api/orders/:id", async (req, res) => {
-  const orderId = req.params.id;
-  if (!ObjectId.isValid(orderId))
-    return res.status(400).send({ message: "Geçersiz sipariş ID'si" });
-  try {
-    const ordersCollection = mongoose.connection.db.collection("orders");
-    const result = await ordersCollection.deleteOne({
-      _id: new ObjectId(orderId),
-    });
-    if (result.deletedCount === 0)
-      return res.status(404).send({ message: "Sipariş bulunamadı" });
-    res.status(200).send({ message: "Sipariş başarıyla silindi" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Sipariş silinirken hata oluştu" });
-  }
-});
-
-// Kullanıcı kayıt
-app.post("/kayitOl", async (req, res) => {
-  try {
-    const { Ad, Soyad, Email, Sifre } = req.body;
-    if (!Ad || !Soyad || !Email || !Sifre) {
-      return res.status(400).send({ message: "Tüm alanları doldurun" });
-    }
-    const userCollection = mongoose.connection.db.collection("user");
-    const mevcutKullanici = await userCollection.findOne({ Email });
-    if (mevcutKullanici) {
-      return res
-        .status(400)
-        .send({ message: "Bu email ile kayıtlı kullanıcı var" });
-    }
-    const hashedPassword = await bcrypt.hash(Sifre, 10);
-    const yeniKullanici = {
-      Ad,
-      Soyad,
-      Email,
-      Sifre: hashedPassword,
-      createdAt: new Date(),
-    };
-    await userCollection.insertOne(yeniKullanici);
-    res.status(201).send({ message: "Kullanıcı başarıyla kaydedildi" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Kayıt olurken bir hata oluştu" });
-  }
-});
-
-// Kullanıcı giriş
-app.post("/girisyap", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).send({ message: "Email veya şifre gerekli" });
-    const userCollection = mongoose.connection.db.collection("user");
-    const mevcutKullanici = await userCollection.findOne({ Email: email });
-    if (!mevcutKullanici)
-      return res.status(404).send({ message: "Kullanıcı bulunamadı" });
-    const SifreDogruMu = await bcrypt.compare(password, mevcutKullanici.Sifre);
-    if (!SifreDogruMu) return res.status(401).send({ message: "Şifre hatalı" });
-    res.status(200).send({ message: "Giriş başarılı" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: "Giriş yapılırken hata oluştu" });
-  }
-});
-
-// Yorum koleksiyonu tanımla
+// COLLECTIONS
 const commentsCollection = () => mongoose.connection.db.collection("comments");
 
-// Yorumları listele (GET)
+// Admin oluşturma (ilk kullanım)
+app.get("/create-admin", async (req, res) => {
+  try {
+    const existingAdmin = await User.findOne({ username: "admin" });
+    if (existingAdmin)
+      return res.status(400).json({ message: "Admin zaten var." });
+
+    const hashedPassword = await bcrypt.hash("GucLu$Sifre2025!", 10);
+    const adminUser = new User({
+      username: "admin",
+      password: hashedPassword,
+      role: "admin",
+    });
+    await adminUser.save();
+
+    // Yeni: İlk ayarları oluştur
+    const defaultSettings = new Settings({});
+    await defaultSettings.save();
+
+    res
+      .status(201)
+      .json({ message: "Admin ve varsayılan ayarlar oluşturuldu." });
+  } catch (err) {
+    res.status(500).json({ message: "Hata oluştu.", error: err.message });
+  }
+});
+
+// Admin giriş endpoint
+app.post("/admin-login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password)
+      return res
+        .status(400)
+        .json({ message: "Kullanıcı adı ve şifre gerekli" });
+
+    const adminUser = await User.findOne({ username });
+    if (!adminUser)
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+
+    const passwordMatch = await bcrypt.compare(password, adminUser.password);
+    if (!passwordMatch)
+      return res.status(401).json({ message: "Şifre hatalı" });
+    if (adminUser.role !== "admin")
+      return res.status(403).json({ message: "Admin yetkisi yok" });
+
+    const token = jwt.sign(
+      { id: adminUser._id, username: adminUser.username, role: adminUser.role },
+      JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+    res.status(200).json({ message: "Giriş başarılı", token });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Girişte hata oluştu", error: err.message });
+  }
+});
+
+// YORUM CRUD (onay alanı ekli)
 app.get("/api/comments", async (req, res) => {
   try {
     const comments = await commentsCollection()
@@ -232,35 +157,144 @@ app.get("/api/comments", async (req, res) => {
       .toArray();
     res.status(200).json(comments);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Yorumlar alınırken hata oluştu" });
   }
 });
 
-// Yeni yorum ekle (POST)
 app.post("/api/comments", async (req, res) => {
   try {
     const { metin } = req.body;
-    if (!metin || metin.trim() === "") {
+    if (!metin || metin.trim() === "")
       return res.status(400).json({ message: "Yorum metni boş olamaz" });
-    }
 
-    const yeniYorum = {
-      metin,
-      tarih: new Date(),
-    };
-
+    const yeniYorum = { metin, tarih: new Date(), onaylandi: false };
     const result = await commentsCollection().insertOne(yeniYorum);
     res
       .status(201)
       .json({ message: "Yorum başarıyla eklendi", id: result.insertedId });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Yorum eklenirken hata oluştu" });
   }
 });
 
-// Server dinlemesi
+// Yorum silme
+app.delete("/api/comments/:id", isAdmin, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const result = await commentsCollection().deleteOne({
+      _id: new ObjectId(commentId),
+    });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: "Yorum bulunamadı" });
+    res.status(200).json({ message: "Yorum başarıyla silindi" });
+  } catch (err) {
+    res.status(500).json({ message: "Yorum silinirken hata oluştu" });
+  }
+});
+
+// Yorum onaylama
+app.put("/api/comments/:id/onayla", isAdmin, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const result = await commentsCollection().updateOne(
+      { _id: new ObjectId(commentId) },
+      { $set: { onaylandi: true } }
+    );
+    if (result.matchedCount === 0)
+      return res.status(404).json({ message: "Yorum bulunamadı" });
+    res.status(200).json({ message: "Yorum onaylandı" });
+  } catch (err) {
+    res.status(500).json({ message: "Yorum onaylanırken hata oluştu" });
+  }
+});
+
+// Dashboard verileri
+app.get("/api/dashboard", isAdmin, async (req, res) => {
+  try {
+    const toplamYorumlar = await commentsCollection().countDocuments({});
+    const bekleyenOnay = await commentsCollection().countDocuments({
+      onaylandi: false,
+    });
+    const toplamKullanici = await User.countDocuments({});
+
+    res.status(200).json({ toplamYorumlar, bekleyenOnay, toplamKullanici });
+  } catch (err) {
+    res.status(500).json({ message: "Dashboard verileri alınamadı" });
+  }
+});
+
+// Admin istatistik endpoint (düzeltilmiş)
+app.get("/api/admin/stats", isAdmin, async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalComments = await commentsCollection().countDocuments();
+    const pendingApprovals = await commentsCollection().countDocuments({
+      onaylandi: false,
+    });
+
+    res.json({
+      totalUsers: totalUsers,
+      totalComments: totalComments,
+      pendingApprovals: pendingApprovals,
+    });
+  } catch (err) {
+    console.log("İstatistik endpointi hatası:", err);
+    res.status(500).json({ error: "Sunucu Hatası" });
+  }
+});
+
+// ------------------------------
+// Yeni eklenen kullanıcı listeleme endpoint'i
+// ------------------------------
+app.get("/api/users", isAdmin, async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Kullanıcılar alınamadı" });
+  }
+});
+
+// ------------------------------
+// Yeni: Ayarlar API'ları
+// ------------------------------
+
+// Ayarları al
+app.get("/api/settings", isAdmin, async (req, res) => {
+  try {
+    const settings = await Settings.findOne();
+    if (!settings) {
+      return res.status(404).json({ message: "Ayarlar bulunamadı." });
+    }
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: "Ayarlar alınırken hata oluştu." });
+  }
+});
+
+// Ayarları güncelle
+app.put("/api/settings", isAdmin, async (req, res) => {
+  try {
+    const { siteName, contactEmail } = req.body;
+    if (!siteName || !contactEmail) {
+      return res.status(400).json({ message: "Tüm alanlar zorunludur." });
+    }
+
+    const updatedSettings = await Settings.findOneAndUpdate(
+      {},
+      { siteName, contactEmail },
+      { new: true, upsert: true }
+    );
+    res.json({
+      message: "Ayarlar başarıyla güncellendi.",
+      settings: updatedSettings,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Ayarlar güncellenirken hata oluştu." });
+  }
+});
+
+// Sunucu başlat
 app.listen(PORT, () => {
   console.log(`Sunucu ${PORT} portunda çalışıyor`);
 });
